@@ -11,3 +11,4 @@ sweetviz
 scipy
 dvc
 mlflow
+dvc_s3
