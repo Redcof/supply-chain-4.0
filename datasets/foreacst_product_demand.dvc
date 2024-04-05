@@ -1,0 +1,6 @@
+outs:
+- md5: 1993bf170b921439a4429119766c229f.dir
+  size: 51253380
+  nfiles: 1
+  hash: md5
+  path: foreacst_product_demand

@@ -1,0 +1,6 @@
+outs:
+- md5: f23e766ab24f4912ef3cb33c5c4c6b0c.dir
+  size: 45622278
+  nfiles: 1
+  hash: md5
+  path: online_retail_II

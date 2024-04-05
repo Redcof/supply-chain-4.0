@@ -1,0 +1,6 @@
+outs:
+- md5: 6d6c96880e3ed62ba710aff3973d2125.dir
+  size: 35703675
+  nfiles: 1
+  hash: md5
+  path: livestock_meat
