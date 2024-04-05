@@ -9,3 +9,5 @@ ydata-profiling
 openpyxl
 sweetviz
 scipy
+dvc
+mlflow
