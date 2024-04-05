@@ -1,0 +1,11 @@
+pandas
+jupyter
+notebook
+matplotlib
+scikit-learn
+xgboost
+interpret
+ydata-profiling
+openpyxl
+sweetviz
+scipy
