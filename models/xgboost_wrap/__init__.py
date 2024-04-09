@@ -16,7 +16,7 @@ def trainer(data, target):
         'reg_lambda': [0.1],
     }
 
-    X_train, X_test, y_train, y_test = timeseries.split(data, target)
+    X_train, X_test, y_train, y_test = timeseries.timeseries_split(data, target)
     xgb_model = XGBRegressor(eval_metric=["rmse", "mae", "mape"], enable_categorical=True, random_state=47)
     grid_search = GridSearchCV(xgb_model, param_grid, cv=3)
 
