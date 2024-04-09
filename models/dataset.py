@@ -40,9 +40,9 @@ def forecasts_for_product_demand_dataset():
     df['Warehouse'] = df['Warehouse'].astype('category')
     df['Product_Category'] = df['Product_Category'].astype('category')
     df.sort_values(by=['Date'], inplace=True)
+    datetime = df['Date'].copy()
     df.drop(columns=['Date'], inplace=True)
-
-    return df, "Order_Demand"
+    return df, "Order_Demand", datetime
 
 
 def livestock_meat_dataset():
