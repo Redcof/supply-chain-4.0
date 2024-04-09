@@ -52,10 +52,20 @@ def livestock_meat_dataset():
     """
     df = pd.read_csv(root_dir / "livestock_meat" / "livestock_meat_imports.csv")
     df.dropna(inplace=True)
-    df.drop(columns=["COMMODITY_DESC", "SOURCE_ID", "ATTRIBUTE_DESC"], inplace=True)
+    # dtypes
+    df['HS_CODE'] = df['HS_CODE'].astype('int64').astype('category')
+    df['GEOGRAPHY_CODE'] = df['GEOGRAPHY_CODE'].astype('int64').astype('category')
+    df['TIMEPERIOD_ID'] = df['TIMEPERIOD_ID'].astype('int64').astype('category')
+    df['GEOGRAPHY_DESC'] = df['GEOGRAPHY_DESC'].astype('category')
+    df['YEAR_ID'] = df['YEAR_ID'].astype('int64').astype('category')
+    df['UNIT_DESC'] = df['UNIT_DESC'].astype('category')
+    # sort
     df.sort_values(by=['YEAR_ID', 'TIMEPERIOD_ID'], inplace=True)
+    # drop
+    df.drop(columns=["SOURCE_ID", "COMMODITY_DESC", "ATTRIBUTE_DESC"], inplace=True)
+    # TODO Convert 'COMMODITY_DESC' feature to categories
 
-    return df, "AMOUNT"
+    return df, "AMOUNT", list(range(len(df)))
 
 
 def online_retail_dataset():
@@ -76,7 +86,7 @@ def online_retail_dataset():
 
     # drop unusable columns
     df.drop(columns=['InvoiceNo', 'Description'], inplace=True)
-    # TODO Convert Description feature to categories
+    # TODO Convert 'Description' feature to categories
 
     return df, "Quantity", "InvoiceDate"
 
