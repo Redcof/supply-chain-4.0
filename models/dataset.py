@@ -18,7 +18,7 @@ def food_demand_dataset():
     df['meal_id'] = df['meal_id'].astype('category')
     df['emailer_for_promotion'] = df['emailer_for_promotion'].astype('category')
     df['homepage_featured'] = df['homepage_featured'].astype('category')
-
+    df['week'] = df['week'].astype('int32')
     df.sort_values(by=['week'], inplace=True)
     df = preprocess(df, "num_orders")
     return df, "num_orders", df.index
@@ -39,8 +39,13 @@ def forecasts_for_product_demand_dataset():
     df['Product_Code'] = df['Product_Code'].astype('category')
     df['Warehouse'] = df['Warehouse'].astype('category')
     df['Product_Category'] = df['Product_Category'].astype('category')
+    # sort by datetime
+    df['Date'] = pd.to_datetime(df['Date'])
     df.sort_values(by=['Date'], inplace=True)
     datetime = df['Date'].copy()
+    # preprocess
+    df = preprocess(df, "Order_Demand", "Date")
+    # drop datetime
     df.drop(columns=['Date'], inplace=True)
     return df, "Order_Demand", datetime
 
@@ -65,7 +70,7 @@ def livestock_meat_dataset():
     df.drop(columns=["SOURCE_ID", "COMMODITY_DESC", "ATTRIBUTE_DESC"], inplace=True)
     # TODO Convert 'COMMODITY_DESC' feature to categories
 
-    return df, "AMOUNT", list(range(len(df)))
+    return df, "AMOUNT", pd.Series(list(range(len(df))))
 
 
 def online_retail_dataset():
@@ -75,23 +80,23 @@ def online_retail_dataset():
     """
     df = pd.read_excel(root_dir / "online_retail" / "online_retail.xlsx")
     df.dropna(inplace=True)
-    # treat Order_Demand
-    df['Order_Demand'] = df['Order_Demand'].str.replace('(', "")
-    df['Order_Demand'] = df['Order_Demand'].str.replace(')', "")
-    df['Order_Demand'] = df['Order_Demand'].astype('int64')
     # fix dtypes
     df['CustomerID'] = df['CustomerID'].astype('int64').astype('category')
     df['Country'] = df['Country'].astype('category')
     df['StockCode'] = df['StockCode'].astype('category')
-
+    # datetime
+    df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
+    df.sort_values(by=['InvoiceDate'], inplace=True)
+    df = preprocess(df, "Quantity", "InvoiceDate")
+    invoice_date = df.InvoiceDate
     # drop unusable columns
     df.drop(columns=['InvoiceNo', 'Description'], inplace=True)
     # TODO Convert 'Description' feature to categories
 
-    return df, "Quantity", "InvoiceDate"
+    return df, "Quantity", invoice_date
 
 
-def online_retail_II_dataset():
+def online_retail_2_dataset():
     """
     Returns a tuple (cleaned dataset in pandas dataframe, the target column name)
     :return:
@@ -100,12 +105,18 @@ def online_retail_II_dataset():
                        sheet_name=['Year 2009-2010', 'Year 2010-2011'])
 
     df = pd.concat([df['Year 2009-2010'], df['Year 2010-2011']])
-    # treat Order_Demand
     df.dropna(inplace=True)
     # fix dtypes
-    # df['Product_Code'] = df['Product_Code'].astype('category')
-    # df['Warehouse'] = df['Warehouse'].astype('category')
-    # df['Product_Category'] = df['Product_Category'].astype('category')
-    df.drop(columns=['Date'], inplace=True)
+    df['Customer ID'] = df['Customer ID'].astype('int64').astype('category')
+    df['Country'] = df['Country'].astype('category')
+    df['StockCode'] = df['StockCode'].astype('category')
+    # datetime
+    df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
+    df.sort_values(by=['InvoiceDate'], inplace=True)
+    df = preprocess(df, "Quantity", "InvoiceDate")
+    invoice_date = df.InvoiceDate
+    # drop unusable columns
+    df.drop(columns=['InvoiceNo', 'Description'], inplace=True)
+    # TODO Convert 'Description' feature to categories
 
-    return df, "Order_Demand"
+    return df, "Quantity", invoice_date
