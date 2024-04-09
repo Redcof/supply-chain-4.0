@@ -1,5 +1,9 @@
 # Creating lag features for time-series data
+import logging
+
 import pandas as pd
+
+logger = logging.getLogger(__file__)
 
 
 def create_lag_features(data, column, lag_steps=3):
@@ -34,14 +38,15 @@ def apply_fourier_transform(data, column):
 
 
 def timeseries_split(data, target, train_size=.8):
+    logger.info("Splitting dataset..")
     # Splitting time-series data into training and testing sets
     train_size = int(len(data) * train_size)
     data_train, data_test = data[:train_size], data[train_size:]
     y_train = data_train[target]
     y_test = data_test[target]
-    X_train = data_train.drop(columns=[target])
-    X_test = data_test.drop(columns=[target])
-    return X_train, X_test, y_train, y_test
+    x_train = data_train.drop(columns=[target])
+    x_test = data_test.drop(columns=[target])
+    return x_train, x_test, y_train, y_test
 
 
 def preprocess(data, target, datetime_col=None, format_str=None):
@@ -70,9 +75,9 @@ def process_datetime(df, datetime_col, format_str=None):
     :return:
     """
     df[datetime_col] = pd.to_datetime(df[datetime_col], format=format_str)
-    df['day'] = df[datetime_col].dt.day
-    df['month'] = df[datetime_col].dt.month
-    df['hour'] = df[datetime_col].dt.hour
+    df['day'] = df[datetime_col].dt.day.astype('category')
+    df['month'] = df[datetime_col].dt.month.astype('category')
+    df['hour'] = df[datetime_col].dt.hour.astype('category')
     df['day_of_week'] = df[datetime_col].dt.dayofweek
     df['day_of_week'] = df['day_of_week'].map({
         0: 'Monday',
@@ -82,5 +87,5 @@ def process_datetime(df, datetime_col, format_str=None):
         4: 'Friday',
         5: 'Saturday',
         6: 'Sunday'
-    })
+    }).astype('category')
     return df

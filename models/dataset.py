@@ -1,10 +1,29 @@
+import logging
 import pathlib
 
 import pandas as pd
 
 from models.preprocess import preprocess
 
-root_dir = pathlib.Path(r"../datasets")
+root_dir = pathlib.Path(r"./datasets")
+logger = logging.getLogger(__file__)
+
+
+def get_dataset(dataset_name):
+    logger.info(f"Creating dataset for :{dataset_name}")
+    if dataset_name == "food_demand":
+        df, target, timeseries_col, dataset_name = food_demand_dataset()
+    elif dataset_name == "product_demand":
+        df, target, timeseries_col, dataset_name = forecasts_for_product_demand_dataset()
+    elif dataset_name == "livestock_meat_import":
+        df, target, timeseries_col, dataset_name = livestock_meat_dataset()
+    elif dataset_name == "online_retail":
+        df, target, timeseries_col, dataset_name = online_retail_dataset()
+    elif dataset_name == "online_retail_2":
+        df, target, timeseries_col, dataset_name = online_retail_2_dataset()
+    else:
+        raise ValueError("Invalid dataset name")
+    return df, target, timeseries_col, dataset_name
 
 
 def food_demand_dataset():
@@ -25,7 +44,7 @@ def food_demand_dataset():
     df['week'] = df['week'].astype('category')
     # preprocess
     df = preprocess(df, "num_orders")
-    return df, "num_orders", pd.Series(list(range(len(df))))
+    return df, "num_orders", None, "food_demand"
 
 
 def forecasts_for_product_demand_dataset():
@@ -46,12 +65,9 @@ def forecasts_for_product_demand_dataset():
     # sort by datetime
     df['Date'] = pd.to_datetime(df['Date'])
     df.sort_values(by=['Date'], inplace=True)
-    datetime = df['Date'].copy()
     # preprocess
     df = preprocess(df, "Order_Demand", "Date")
-    # drop datetime
-    df.drop(columns=['Date'], inplace=True)
-    return df, "Order_Demand", datetime
+    return df, "Order_Demand", "Date", "product_demand"
 
 
 def livestock_meat_dataset():
@@ -75,7 +91,7 @@ def livestock_meat_dataset():
     # TODO Convert 'COMMODITY_DESC' feature to categories
     # preprocess
     df = preprocess(df, "AMOUNT")
-    return df, "AMOUNT", pd.Series(list(range(len(df))))
+    return df, "AMOUNT", None, "livestock_meat_import"
 
 
 def online_retail_dataset():
@@ -98,8 +114,7 @@ def online_retail_dataset():
     # drop unusable columns
     df.drop(columns=['InvoiceNo', 'Description'], inplace=True)
     # TODO Convert 'Description' feature to categories
-
-    return df, "Quantity", invoice_date
+    return df, "Quantity", "InvoiceDate", "online_retail"
 
 
 def online_retail_2_dataset():
@@ -107,7 +122,7 @@ def online_retail_2_dataset():
     Returns a tuple (cleaned dataset in pandas dataframe, the target column name)
     :return:
     """
-    df = pd.read_excel(root_dir / "online_retail_II_dataset" / "online_retail_II.xlsx",
+    df = pd.read_excel(root_dir / "online_retail_2" / "online_retail_2.xlsx",
                        sheet_name=['Year 2009-2010', 'Year 2010-2011'])
 
     df = pd.concat([df['Year 2009-2010'], df['Year 2010-2011']])
@@ -119,11 +134,10 @@ def online_retail_2_dataset():
     # datetime
     df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
     df.sort_values(by=['InvoiceDate'], inplace=True)
-    invoice_date = df.InvoiceDate.copy()
     # preprocess
     df = preprocess(df, "Quantity", "InvoiceDate")
     # drop unusable columns
-    df.drop(columns=['InvoiceNo', 'Description'], inplace=True)
+    df.drop(columns=['Invoice', 'Description'], inplace=True)
     # TODO Convert 'Description' feature to categories
 
-    return df, "Quantity", invoice_date
+    return df, "Quantity", "InvoiceDate", "online_retail_2"
