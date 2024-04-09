@@ -14,14 +14,18 @@ def food_demand_dataset():
     """
     df = pd.read_csv(root_dir / "food_demand_dataset" / "train.csv", index_col='id')
     df.dropna(inplace=True)
+    # fix dtypes
     df['center_id'] = df['center_id'].astype('category')
     df['meal_id'] = df['meal_id'].astype('category')
     df['emailer_for_promotion'] = df['emailer_for_promotion'].astype('category')
     df['homepage_featured'] = df['homepage_featured'].astype('category')
+    # sort
     df['week'] = df['week'].astype('int32')
     df.sort_values(by=['week'], inplace=True)
+    df['week'] = df['week'].astype('category')
+    # preprocess
     df = preprocess(df, "num_orders")
-    return df, "num_orders", df.index
+    return df, "num_orders", pd.Series(list(range(len(df))))
 
 
 def forecasts_for_product_demand_dataset():
@@ -69,7 +73,8 @@ def livestock_meat_dataset():
     # drop
     df.drop(columns=["SOURCE_ID", "COMMODITY_DESC", "ATTRIBUTE_DESC"], inplace=True)
     # TODO Convert 'COMMODITY_DESC' feature to categories
-
+    # preprocess
+    df = preprocess(df, "AMOUNT")
     return df, "AMOUNT", pd.Series(list(range(len(df))))
 
 
@@ -87,8 +92,9 @@ def online_retail_dataset():
     # datetime
     df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
     df.sort_values(by=['InvoiceDate'], inplace=True)
+    invoice_date = df.InvoiceDate.copy()
+    # preprocess
     df = preprocess(df, "Quantity", "InvoiceDate")
-    invoice_date = df.InvoiceDate
     # drop unusable columns
     df.drop(columns=['InvoiceNo', 'Description'], inplace=True)
     # TODO Convert 'Description' feature to categories
@@ -113,8 +119,9 @@ def online_retail_2_dataset():
     # datetime
     df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
     df.sort_values(by=['InvoiceDate'], inplace=True)
+    invoice_date = df.InvoiceDate.copy()
+    # preprocess
     df = preprocess(df, "Quantity", "InvoiceDate")
-    invoice_date = df.InvoiceDate
     # drop unusable columns
     df.drop(columns=['InvoiceNo', 'Description'], inplace=True)
     # TODO Convert 'Description' feature to categories
