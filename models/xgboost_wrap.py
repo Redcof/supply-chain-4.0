@@ -1,6 +1,7 @@
 # Hyperparameter tuning using grid search
 import logging
 
+import mlflow
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBRegressor
 
@@ -15,7 +16,7 @@ class XGBoostBaseModel(BaseModel):
         self.model_name = "xgboost"
 
     @staticmethod
-    def fit(x_train, y_train):
+    def fit(x_train, y_train, x_test, y_test):
         param_grid = {
             'learning_rate': [0.01, 0.1, 0.2],
             'max_depth': [3, 5, 7],
@@ -27,4 +28,6 @@ class XGBoostBaseModel(BaseModel):
         grid_search = GridSearchCV(xgb_model, param_grid, cv=3, n_jobs=3, verbose=1)
         grid_search_agent = grid_search.fit(x_train, y_train)
         xgb_model = grid_search_agent.best_estimator_
-        return xgb_model, xgb_model.feature_importances_
+        imp = {f"feature_{k}": v for k, v in zip(xgb_model.feature_names_in_, xgb_model.feature_importances_)}
+        mlflow.log_params(imp)
+        return xgb_model, imp

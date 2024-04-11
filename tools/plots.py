@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 
 def plots(prefix, y_test, y_pred, x):
     rcParams['font.family'] = 'serif'
+    rcParams['font.size'] = '20'
     df = pd.DataFrame(dict(y=y_test, y_pred=y_pred, timeline=x))
-    ax = df.plot.line(x='timeline', figsize=(20, 10))
+    ax = df.plot.line(x='timeline', figsize=(15, 15))
     fig = ax.get_figure()
     file_name = "./output/%s.png" % prefix
     fig.savefig(file_name)

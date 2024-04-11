@@ -2,6 +2,7 @@
 import logging
 
 import pandas as pd
+from sklearn import preprocessing
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,16 @@ def timeseries_split(data, target, train_size=.8):
     return x_train, x_test, y_train, y_test
 
 
-def preprocess(data, target, datetime_col=None, format_str=None, is_extra_feature_enabled = True):
+def perform_label_encoding(df):
+    for col in df.columns:
+        if df[col].dtype == 'category':
+            label_encoder = preprocessing.LabelEncoder()
+            df[col] = label_encoder.fit_transform(df[col])
+            df[col] = df[col].astype('int')
+    return df
+
+
+def preprocess(data, target, datetime_col=None, format_str=None, is_extra_feature_enabled=True):
     """
     Creates target_lag, target_rolling_mean, target_fft, and datatime features
     :param is_extra_feature_enabled:
@@ -65,6 +75,7 @@ def preprocess(data, target, datetime_col=None, format_str=None, is_extra_featur
         data = apply_fourier_transform(data, target)
     if datetime_col:
         data = process_datetime(data, datetime_col, format_str)
+    data = perform_label_encoding(data)
     return data
 
 

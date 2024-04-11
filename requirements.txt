@@ -13,3 +13,4 @@ dvc
 mlflow
 dvc_s3
 python-dotenv
+pytorch-tabnet
