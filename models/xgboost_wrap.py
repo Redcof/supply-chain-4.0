@@ -6,7 +6,7 @@ from xgboost import XGBRegressor
 
 from models import BaseModel
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class XGBoostBaseModel(BaseModel):
@@ -23,8 +23,8 @@ class XGBoostBaseModel(BaseModel):
             'reg_alpha': [0.1],
             'reg_lambda': [0.1],
         }
-        xgb_model = XGBRegressor(eval_metric=["rmse", "mae", "mape"], enable_categorical=True, random_state=47)
-        grid_search = GridSearchCV(xgb_model, param_grid, cv=3)
+        xgb_model = XGBRegressor(enable_categorical=True, random_state=47)
+        grid_search = GridSearchCV(xgb_model, param_grid, cv=3, n_jobs=3, verbose=1)
         grid_search_agent = grid_search.fit(x_train, y_train)
         xgb_model = grid_search_agent.best_estimator_
         return xgb_model, xgb_model.feature_importances_

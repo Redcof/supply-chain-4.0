@@ -1,9 +1,10 @@
 import logging
 
+import mlflow
 import pandas as pd
 from matplotlib import pyplot as plt, rcParams
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 def plots(prefix, y_test, y_pred, x):
@@ -16,3 +17,4 @@ def plots(prefix, y_test, y_pred, x):
     # fig.savefig("%s_%s.png" % (prefix, datetime.now()))
     logger.info(f"Plot is saved at {file_name}")
     plt.close()
+    mlflow.log_artifact(str(file_name), "output/plots")

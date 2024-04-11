@@ -1,7 +1,7 @@
 import logging
 from abc import abstractmethod, ABC
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class BaseModel(ABC):

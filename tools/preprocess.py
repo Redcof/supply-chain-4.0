@@ -3,7 +3,7 @@ import logging
 
 import pandas as pd
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 def create_lag_features(data, column, lag_steps=3):
@@ -49,18 +49,20 @@ def timeseries_split(data, target, train_size=.8):
     return x_train, x_test, y_train, y_test
 
 
-def preprocess(data, target, datetime_col=None, format_str=None):
+def preprocess(data, target, datetime_col=None, format_str=None, is_extra_feature_enabled = True):
     """
     Creates target_lag, target_rolling_mean, target_fft, and datatime features
+    :param is_extra_feature_enabled:
     :param data:
     :param target:
     :param datetime_col:
     :param format_str:
     :return:
     """
-    data = create_lag_features(data, target)
-    data = create_rolling_mean(data, target)
-    data = apply_fourier_transform(data, target)
+    if is_extra_feature_enabled:
+        data = create_lag_features(data, target)
+        data = create_rolling_mean(data, target)
+        data = apply_fourier_transform(data, target)
     if datetime_col:
         data = process_datetime(data, datetime_col, format_str)
     return data
