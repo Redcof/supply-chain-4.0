@@ -2,6 +2,7 @@ import os
 
 import mlflow
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 load_dotenv("./.env")
 import logging
@@ -14,7 +15,7 @@ from tools.preprocess import timeseries_split
 logger = logging.getLogger("SCM-4.0")
 
 is_extra_feature_enabled = True
-ablation = 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
+ablation = -1  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
 
 
 def experiment(model_name, dataset_name):
@@ -55,22 +56,33 @@ def experiment(model_name, dataset_name):
 
 def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
-    for model_name in ["ssl+tabnet", "tabnet"]:
+    experiments = []
+    for model_name in ["xgboost", "explainable_boosting", "ssl+tabnet", "tabnet"]:
         for dataset_name in ["product_demand", "food_demand", "livestock_meat_import", "online_retail",
-                             "online_retail_2"][:1]:
-            postfix = "-exf" if is_extra_feature_enabled else ""
-            ablation_txt = "-abl" if ablation > 0 else ""
-            exp_name = f"{dataset_name}{postfix}{ablation_txt}"
-            # exp_name = f"plot-{dataset_name}{postfix}{ablation_txt}"
+                             "online_retail_2"]:
+            experiments.append((model_name, dataset_name))
+    for model_name, dataset_name in tqdm(experiments):
+        postfix = "-exf" if is_extra_feature_enabled else ""
+        ablation_txt = "-abl" if ablation > 0 else ""
+        exp_name = f"{dataset_name}{postfix}{ablation_txt}"
+        # exp_name = f"plot-{dataset_name}{postfix}{ablation_txt}"
+        experiment_tracking_file = f"output/tracking/{model_name}-{dataset_name}{postfix}{ablation_txt}"
+        if not os.path.exists(experiment_tracking_file):
+            open(experiment_tracking_file, "w")
+            print(experiment_tracking_file)
             mlflow.set_experiment(experiment_name=exp_name)
             with mlflow.start_run(description=exp_name):
                 mlflow.log_params(dict(
                     model=model_name,
                 ))
-                experiment(model_name, dataset_name)
+                try:
+                    experiment(model_name, dataset_name)
+                except:
+                    os.remove(experiment_tracking_file)
                 mlflow.end_run()
-    logger.info("All experiments are done")
 
+
+logger.info("All experiments are done")
 
 if __name__ == '__main__':
     configure_logger(logging.DEBUG)  # logger
