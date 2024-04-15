@@ -13,8 +13,7 @@ class EXBModel(BaseModel):
         super().__init__()
         self.model_name = "explainable_boosting"
 
-    @staticmethod
-    def fit(x_train, y_train):
+    def fit(self, x_train, y_train, x_test, y_test):
         model = ExplainableBoostingRegressor(random_state=47)
         model.fit(x_train, y_train)
         # global_explanation = model.explain_global()

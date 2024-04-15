@@ -12,9 +12,8 @@ logger = logging.getLogger(__name__)
 
 class BaseModel(ABC):
 
-    @staticmethod
     @abstractmethod
-    def fit(x, y):
+    def fit(self, x_train, y_train, x_test, y_test):
         ...
 
     def __init__(self, *args):

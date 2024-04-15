@@ -15,8 +15,7 @@ class XGBoostBaseModel(BaseModel):
         super().__init__()
         self.model_name = "xgboost"
 
-    @staticmethod
-    def fit(x_train, y_train, x_test, y_test):
+    def fit(self, x_train, y_train, x_test, y_test):
         param_grid = {
             'learning_rate': [0.01, 0.1, 0.2],
             'max_depth': [3, 5, 7],

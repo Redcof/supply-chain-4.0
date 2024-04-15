@@ -14,7 +14,7 @@ all_models = [
 ]
 
 
-def get_model(model_name):
+def get_model_trainer(model_name):
     assert model_name in all_models
     logger.info("Create model trainer object")
     if model_name == "xgboost":

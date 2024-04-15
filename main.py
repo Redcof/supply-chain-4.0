@@ -8,22 +8,22 @@ import logging
 
 from logger import configure_logger
 from tools.dataset import get_dataset
-from tools.models import get_model
+from tools.models import get_model_trainer
 from tools.preprocess import timeseries_split
 
 logger = logging.getLogger("SCM-4.0")
 
 is_extra_feature_enabled = True
-ablation = 1000
+ablation = 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
 
 
 def experiment(model_name, dataset_name):
     logger.info(f"{dataset_name}:{model_name}: Preparing model and datasets")
-    data, target, timeseries_col, dataset_name = get_dataset(dataset_name, ablation_limit=ablation,
-                                                             is_extra_feature_enabled=is_extra_feature_enabled)
-    logger.info(f"{dataset_name}:DF INFO:\n{data.info()}")
-    model_trainer = get_model(model_name)
-    x_train, x_test, y_train, y_test = timeseries_split(data, target)
+    df, target, timeseries_col, dataset_name = get_dataset(dataset_name, ablation_limit=ablation,
+                                                           is_extra_feature_enabled=is_extra_feature_enabled)
+    logger.info(f"{dataset_name}:DF INFO:\n{df.info()}")
+    model_trainer = get_model_trainer(model_name)
+    x_train, x_test, y_train, y_test = timeseries_split(df, target, train_size=.8)
     # mlflow.log_input(x_train, context="training")
     # mlflow.log_input(x_test, context="testing")
     mlflow.log_params(dict(
@@ -43,7 +43,7 @@ def experiment(model_name, dataset_name):
         x_train_timeseries = list(range(len(x_train)))
         x_test_timeseries = list(range(len(x_test)))
     logger.info(f"{dataset_name}:{model_name}: Start training... WITH DATASIZE: {x_train.shape}")
-    model, feature_importance = model_trainer.fit(x_train, y_train)
+    model, feature_importance = model_trainer.fit(x_train, y_train, x_test, y_test)
 
     logger.info(f"{model_name}:{dataset_name}: feature_importance {feature_importance}")
 
@@ -55,7 +55,7 @@ def experiment(model_name, dataset_name):
 
 def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
-    for model_name in ["ssl+tabnet"]:
+    for model_name in ["ssl+tabnet", "tabnet"]:
         for dataset_name in ["product_demand", "food_demand", "livestock_meat_import", "online_retail",
                              "online_retail_2"][:1]:
             postfix = "-exf" if is_extra_feature_enabled else ""

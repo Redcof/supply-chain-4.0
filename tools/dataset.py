@@ -28,8 +28,8 @@ def get_dataset(dataset_name, is_extra_feature_enabled=False, ablation_limit=Non
             is_extra_feature_enabled=is_extra_feature_enabled)
     else:
         raise ValueError("Invalid dataset name")
-    if isinstance(ablation_limit, int):
-        df = df[:ablation_limit]
+    if ablation_limit != -1 and isinstance(ablation_limit, int):
+        df = df.head(ablation_limit)
     return df, target, timeseries_col, dataset_name
 
 
