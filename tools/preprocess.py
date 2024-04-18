@@ -52,7 +52,7 @@ def timeseries_split(data, target, train_size=.8):
 
 def perform_label_encoding(df):
     for col in df.columns:
-        if df[col].dtype == 'category':
+        if df[col].dtype in ('category', 'string'):
             label_encoder = preprocessing.LabelEncoder()
             df[col] = label_encoder.fit_transform(df[col])
             df[col] = df[col].astype('int')

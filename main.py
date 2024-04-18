@@ -52,6 +52,7 @@ def experiment(model_name, dataset_name):
     model_trainer.evaluate(model_name, dataset_name, "train", model, x_train, y_train, x_train_timeseries)
     model_trainer.evaluate(model_name, dataset_name, "test", model, x_test, y_test, x_test_timeseries)
     logger.info(f"{dataset_name}:{model_name}: Done")
+    return True
 
 
 def main():
@@ -64,22 +65,19 @@ def main():
     for model_name, dataset_name in tqdm(experiments):
         postfix = "-exf" if is_extra_feature_enabled else ""
         ablation_txt = "-abl" if ablation > 0 else ""
-        exp_name = f"{dataset_name}{postfix}{ablation_txt}"
+        exp_name = f"main-{dataset_name}{postfix}{ablation_txt}"
         # exp_name = f"plot-{dataset_name}{postfix}{ablation_txt}"
-        experiment_tracking_file = f"output/tracking/{model_name}-{dataset_name}{postfix}{ablation_txt}"
+        experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{postfix}{ablation_txt}"
         if not os.path.exists(experiment_tracking_file):
-            open(experiment_tracking_file, "w")
             print(experiment_tracking_file)
             mlflow.set_experiment(experiment_name=exp_name)
             with mlflow.start_run(description=exp_name):
                 mlflow.log_params(dict(
                     model=model_name,
                 ))
-                try:
-                    experiment(model_name, dataset_name)
-                except:
-                    os.remove(experiment_tracking_file)
+                experiment(model_name, dataset_name)
                 mlflow.end_run()
+                open(experiment_tracking_file, "w")
 
 
 logger.info("All experiments are done")

@@ -111,7 +111,7 @@ def online_retail_dataset(is_extra_feature_enabled=False):
     # fix dtypes
     df['CustomerID'] = df['CustomerID'].astype('int64').astype('category')
     df['Country'] = df['Country'].astype('category')
-    df['StockCode'] = df['StockCode'].astype('category')
+    df['StockCode'] = df['StockCode'].astype('string')
     # datetime
     df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
     df.sort_values(by=['InvoiceDate'], inplace=True)
@@ -137,7 +137,7 @@ def online_retail_2_dataset(is_extra_feature_enabled=False):
     # fix dtypes
     df['Customer ID'] = df['Customer ID'].astype('int64').astype('category')
     df['Country'] = df['Country'].astype('category')
-    df['StockCode'] = df['StockCode'].astype('category')
+    df['StockCode'] = df['StockCode'].astype('string')
     # datetime
     df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
     df.sort_values(by=['InvoiceDate'], inplace=True)
