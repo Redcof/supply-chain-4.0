@@ -14,7 +14,7 @@ from tools.preprocess import timeseries_split
 
 logger = logging.getLogger("SCM-4.0")
 
-is_extra_feature_enabled = True
+is_extra_feature_enabled = False
 ablation = -1  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
 
 
@@ -45,9 +45,9 @@ def experiment(model_name, dataset_name):
         x_test_timeseries = list(range(len(x_test)))
     logger.info(f"{dataset_name}:{model_name}: Start training... WITH DATASIZE: {x_train.shape}")
     model, feature_importance = model_trainer.fit(x_train, y_train, x_test, y_test)
-
+    
     logger.info(f"{model_name}:{dataset_name}: feature_importance {feature_importance}")
-
+    
     logger.info(f"{dataset_name}:{model_name}: Start evaluation... WITH DATASIZE: {x_test.shape}")
     model_trainer.evaluate(model_name, dataset_name, "train", model, x_train, y_train, x_train_timeseries)
     model_trainer.evaluate(model_name, dataset_name, "test", model, x_test, y_test, x_test_timeseries)
@@ -58,14 +58,13 @@ def experiment(model_name, dataset_name):
 def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
     experiments = []
-    for model_name in ["xgboost", "explainable_boosting", "ssl+tabnet", "tabnet"]:
-        for dataset_name in ["product_demand", "food_demand", "livestock_meat_import", "online_retail",
-                             "online_retail_2"]:
+    for dataset_name in ["online_retail", "online_retail_2", "product_demand", "food_demand", "livestock_meat_import"]:
+        for model_name in ["ssl+tabnet", "tabnet", "xgboost", "explainable_boosting"]:
             experiments.append((model_name, dataset_name))
     for model_name, dataset_name in tqdm(experiments):
         postfix = "-exf" if is_extra_feature_enabled else ""
         ablation_txt = "-abl" if ablation > 0 else ""
-        exp_name = f"main-{dataset_name}{postfix}{ablation_txt}"
+        exp_name = f"pc-{dataset_name}{postfix}{ablation_txt}"
         # exp_name = f"plot-{dataset_name}{postfix}{ablation_txt}"
         experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{postfix}{ablation_txt}"
         if not os.path.exists(experiment_tracking_file):

@@ -32,7 +32,7 @@ class BaseModel(ABC):
         rmse = np.sqrt(mean_squared_error(y, y_pred))
         mape = mean_absolute_percentage_error(y, y_pred)
         logger.info(f"{dataset_name}: {model_name}:{phase} errors: {dict(mse=mse, rmse=rmse, mae=mae, mape=mape)}")
-        mlflow.log_params({
+        mlflow.log_metric({
             f"{phase}_mae": mae,
             f"{phase}_mse": mse,
             f"{phase}_rmse": rmse,

@@ -71,7 +71,7 @@ class TabNetSSL(TabNetBase):
         )
 
         pre_trainer.fit(
-            max_epochs=20,
+            max_epochs=80,
             X_train=np_x_train,
             eval_set=[np_x_train, np_x_test],
             eval_name=["train", "test"],
@@ -104,7 +104,7 @@ class TabNetwork(TabNetBase):
         model = TabNetRegressor(seed=47)
         if pre_trained_backbone:
             model.fit(np_x_train, np_y_train,
-                      max_epochs=15,
+                      max_epochs=50,
                       eval_set=[(np_x_train, np_y_train),
                                 (np_x_test, np_y_test)],
                       eval_name=["train", "test"],
@@ -112,7 +112,7 @@ class TabNetwork(TabNetBase):
                       from_unsupervised=pre_trained_backbone)
         else:
             model.fit(np_x_train, np_y_train,
-                      max_epochs=30,
+                      max_epochs=100,
                       eval_set=[(np_x_train, np_y_train),
                                 (np_x_test, np_y_test)],
                       eval_name=["train", "test"],

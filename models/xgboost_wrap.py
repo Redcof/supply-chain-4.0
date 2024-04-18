@@ -14,7 +14,7 @@ class XGBoostBaseModel(BaseModel):
     def __init__(self):
         super().__init__()
         self.model_name = "xgboost"
-
+    
     def fit(self, x_train, y_train, x_test, y_test):
         param_grid = {
             'learning_rate': [0.01, 0.1, 0.2],
@@ -23,7 +23,9 @@ class XGBoostBaseModel(BaseModel):
             'reg_alpha': [0.1],
             'reg_lambda': [0.1],
         }
-        xgb_model = XGBRegressor(enable_categorical=True, random_state=47)
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        xgb_model = XGBRegressor(enable_categorical=True, random_state=47, device=device)
         grid_search = GridSearchCV(xgb_model, param_grid, cv=3, n_jobs=3, verbose=1)
         grid_search_agent = grid_search.fit(x_train, y_train)
         xgb_model = grid_search_agent.best_estimator_
