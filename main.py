@@ -59,7 +59,7 @@ def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
     experiments = []
     for dataset_name in ["online_retail", "online_retail_2", "product_demand", "food_demand", "livestock_meat_import"]:
-        for model_name in ["ssl+tabnet", "tabnet", "xgboost", "explainable_boosting"]:
+        for model_name in ["xgboost", "ssl+tabnet", "tabnet",  "explainable_boosting"]:
             experiments.append((model_name, dataset_name))
     for model_name, dataset_name in tqdm(experiments):
         postfix = "-exf" if is_extra_feature_enabled else ""
