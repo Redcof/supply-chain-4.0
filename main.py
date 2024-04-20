@@ -14,7 +14,7 @@ from tools.preprocess import timeseries_split
 
 logger = logging.getLogger("SCM-4.0")
 
-is_extra_feature_enabled = False
+is_extra_feature_enabled = True
 ablation = -1  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
 
 
@@ -59,20 +59,22 @@ def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
     experiments = []
     for dataset_name in ["online_retail", "online_retail_2", "product_demand", "food_demand", "livestock_meat_import"]:
-        for model_name in ["xgboost", "ssl+tabnet", "tabnet",  "explainable_boosting"]:
+        for model_name in ["xgboost", "ssl+tabnet", "tabnet", "explainable_boosting"]:
             experiments.append((model_name, dataset_name))
+    print("")
     for model_name, dataset_name in tqdm(experiments):
         postfix = "-exf" if is_extra_feature_enabled else ""
         ablation_txt = "-abl" if ablation > 0 else ""
-        exp_name = f"pc-{dataset_name}{postfix}{ablation_txt}"
+        exp_name = f"pc2-{dataset_name}{postfix}{ablation_txt}"
         # exp_name = f"plot-{dataset_name}{postfix}{ablation_txt}"
         experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{postfix}{ablation_txt}"
+        print(experiment_tracking_file)
         if not os.path.exists(experiment_tracking_file):
-            print(experiment_tracking_file)
             mlflow.set_experiment(experiment_name=exp_name)
             with mlflow.start_run(description=exp_name):
                 mlflow.log_params(dict(
                     model=model_name,
+                    dataset=dataset_name,
                 ))
                 experiment(model_name, dataset_name)
                 mlflow.end_run()
