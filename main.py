@@ -15,18 +15,17 @@ from tools.preprocess import timeseries_split
 logger = logging.getLogger("SCM-4.0")
 
 is_extra_feature_enabled = True
-ablation = 100  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
+ablation = -1  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
 
 
 def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
-    logger.info(f"{dataset_name}:{model_name}: Preparing model and datasets")
+    meta_info = "%s%s" % (extra_feat_txt, ablation_txt)
+    logger.info(f"{dataset_name}:{model_name}:{meta_info} Preparing model and datasets")
     df, target, timeseries_col, dataset_name = get_dataset(dataset_name, ablation_limit=ablation,
                                                            is_extra_feature_enabled=is_extra_feature_enabled)
     logger.info(f"{dataset_name}:DF INFO:\n{df.info()}")
     model_trainer = get_model_trainer(model_name)
     x_train, x_test, y_train, y_test = timeseries_split(df, target, train_size=.8)
-    # mlflow.log_input(x_train, context="training")
-    # mlflow.log_input(x_test, context="testing")
     mlflow.log_params(dict(
         features=list(x_train.columns.values),
     ))
@@ -47,27 +46,29 @@ def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
         x_test_timeseries = list(range(len(x_test)))
     logger.info(f"{dataset_name}:{model_name}: Start training... WITH DATASIZE: {x_train.shape}")
     model, feature_importance = model_trainer.fit(x_train, y_train, x_test, y_test)
-    
+
     logger.info(f"{model_name}:{dataset_name}: feature_importance {feature_importance}")
-    
+
     logger.info(f"{dataset_name}:{model_name}: Start evaluation... WITH DATASIZE: {x_test.shape}")
-    model_trainer.evaluate(model_name, dataset_name, f"train", model, x_train, y_train, x_train_timeseries)
-    model_trainer.evaluate(model_name, dataset_name, f"test", model, x_test, y_test, x_test_timeseries)
-    logger.info(f"{dataset_name}:{model_name}: Done")
+    model_trainer.evaluate(model_name, dataset_name, f"train", model, x_train, y_train, x_train_timeseries,
+                           meta_info=meta_info)
+    model_trainer.evaluate(model_name, dataset_name, f"test", model, x_test, y_test, x_test_timeseries,
+                           meta_info=meta_info)
+    logger.info(f"{dataset_name}:{model_name}:{meta_info} Done")
     return True
 
 
 def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
     experiments = []
-    for dataset_name in ["online_retail", "online_retail_2", "product_demand", "food_demand", "livestock_meat_import"]:
+    for dataset_name in ["livestock_meat_import"]:
         for model_name in ["xgboost", "ssl+tabnet", "tabnet", "explainable_boosting"]:
             experiments.append((model_name, dataset_name))
     print("")
     for model_name, dataset_name in tqdm(experiments):
         extra_feat_txt = "-exf" if is_extra_feature_enabled else ""
         ablation_txt = f"-abl{ablation}" if ablation > 0 else ""
-        unique_mlops_exp_prefix = "pcmay"
+        unique_mlops_exp_prefix = "macmay"
         exp_name = f"{unique_mlops_exp_prefix}-{dataset_name}{extra_feat_txt}{ablation_txt}"
         experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{extra_feat_txt}{ablation_txt}"
         print(experiment_tracking_file, end="")
