@@ -22,7 +22,7 @@ class BaseModel(ABC):
     def evaluate(self, model_name, dataset_name, phase, model, x, y, x_timeseries, meta_info=""):
         logger.info(f"predicting {dataset_name}:{model_name}")
         y_pred = model.predict(x)
-        self.log_evaluation(model_name, dataset_name, phase, y, y_pred, x_timeseries)
+        self.log_evaluation(model_name, dataset_name, phase, y, y_pred, x_timeseries, meta_info=meta_info)
     
     @staticmethod
     def log_evaluation(model_name, dataset_name, phase, y, y_pred, x_timeseries, meta_info=""):

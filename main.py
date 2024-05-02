@@ -89,7 +89,7 @@ def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
     experiments = []
     for dataset_name in ["online_retail", "online_retail_2", "product_demand", "future_sales", "livestock_meat_import"]:
-        for model_name in ["xgboost", "explainable_boosting", "ssl+tabnet", "tabnet", ]:
+        for model_name in ["xgboost", "explainable_boosting", "ssl+tabnet", "tabnet"]:
             experiments.append((model_name, dataset_name))
     print("")
     for model_name, dataset_name in tqdm(experiments):

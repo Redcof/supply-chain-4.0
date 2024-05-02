@@ -89,7 +89,8 @@ class TabNetSSL(TabNetBase):
         x = x.fillna(0)
         np_x = x.to_numpy()
         y_pred = np.clip(model.predict(np_x), a_min=0, a_max=None)
-        self.log_evaluation(model_name, dataset_name, phase, y, y_pred.reshape((-1,)), x_timeseries)
+        self.log_evaluation(model_name, dataset_name, phase, y, y_pred.reshape((-1,)), x_timeseries,
+                            meta_info=meta_info)
 
 
 class TabNetwork(TabNetBase):
@@ -125,4 +126,5 @@ class TabNetwork(TabNetBase):
         x = x.fillna(0)
         np_x = x.to_numpy()
         y_pred = np.clip(model.predict(np_x), a_min=0, a_max=None)
-        self.log_evaluation(model_name, dataset_name, phase, y, y_pred.reshape((-1,)), x_timeseries, meta_info)
+        self.log_evaluation(model_name, dataset_name, phase, y, y_pred.reshape((-1,)), x_timeseries,
+                            meta_info=meta_info)
