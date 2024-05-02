@@ -30,6 +30,8 @@ def get_dataset(dataset_name, is_extra_feature_enabled=False, ablation_limit=Non
         raise ValueError("Invalid dataset name")
     if ablation_limit != -1 and isinstance(ablation_limit, int):
         df = df.head(ablation_limit)
+    # remove columns with constant values
+    df = df.loc[:, (df != df.iloc[0]).any()]
     return df, target, timeseries_col, dataset_name
 
 

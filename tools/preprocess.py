@@ -15,7 +15,6 @@ def create_lag_features(data, column, lag_steps=3):
 
 
 # Creating rolling mean for time-series data
-
 def create_rolling_mean(data, column, window_size=3):
     data['rolling_mean'] = data[column].rolling(window=window_size).mean()
 
