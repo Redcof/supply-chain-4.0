@@ -1,0 +1,6 @@
+outs:
+- md5: 68b94928f67bda8a57af7298f31bbac8.dir
+  size: 101183995
+  nfiles: 6
+  hash: md5
+  path: predict_future_sales

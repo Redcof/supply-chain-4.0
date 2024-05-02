@@ -16,6 +16,25 @@ logger = logging.getLogger("SCM-4.0")
 
 is_extra_feature_enabled = True
 ablation = -1  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
+unique_mlops_exp_prefix = "macmay"
+
+
+def calculate_time_period(series):
+    difference_txt = ""
+    # Get the difference between the maximum and minimum dates
+    date_difference = series.max() - series.min()
+
+    # # Extract individual components
+    # years = date_difference.days // 365
+    # months = (date_difference.days % 365) // 30
+    # days = (date_difference.days % 365) % 30
+    # hours = date_difference.seconds // 3600
+    # minutes = (date_difference.seconds % 3600) // 60
+    # seconds = date_difference.seconds % 60
+    # for unit, val in zip(("Y", "M", "D", "H", "m", "s"), (years, months, days, hours, minutes, seconds)):
+    #     if val > 0 or unit in ("H", "m", "s"):
+    #         difference_txt = f"{difference_txt} {val}{unit}"
+    return date_difference.seconds, str(date_difference)  # , difference_txt.strip()
 
 
 def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
@@ -26,13 +45,21 @@ def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
     logger.info(f"{dataset_name}:DF INFO:\n{df.info()}")
     model_trainer = get_model_trainer(model_name)
     x_train, x_test, y_train, y_test = timeseries_split(df, target, train_size=.8)
+
+    total_diff = calculate_time_period(df[timeseries_col])
+    train_diff = calculate_time_period(x_train[timeseries_col])
+    test_diff = calculate_time_period(x_test[timeseries_col])
     mlflow.log_params(dict(
-        features=list(x_train.columns.values),
-    ))
-    mlflow.log_metrics(dict(
         train_size=len(x_train),
         test_size=len(x_test),
-        feature_count=len(x_train.columns)
+        feature_count=len(x_train.columns),
+        time_period=total_diff[0],
+        time_period_sec_train=train_diff[0],
+        time_period_sec_test=test_diff[0],
+        features=list(x_train.columns.values),
+        time_period_sec_txt=total_diff[1],
+        time_period_train_txt=train_diff[1],
+        time_period_test_txt=test_diff[1],
     ))
     logger.info(f"{dataset_name}:{model_name}: Creating timeseries features for plotting")
     if timeseries_col:
@@ -61,14 +88,14 @@ def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
 def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
     experiments = []
-    for dataset_name in ["livestock_meat_import"]:
-        for model_name in ["xgboost", "ssl+tabnet", "tabnet", "explainable_boosting"]:
+    for dataset_name in ["online_retail", "online_retail_2", "product_demand", "future_sales", "livestock_meat_import"]:
+        for model_name in ["xgboost", "explainable_boosting", "ssl+tabnet", "tabnet", ]:
             experiments.append((model_name, dataset_name))
     print("")
     for model_name, dataset_name in tqdm(experiments):
         extra_feat_txt = "-exf" if is_extra_feature_enabled else ""
         ablation_txt = f"-abl{ablation}" if ablation > 0 else ""
-        unique_mlops_exp_prefix = "macmay"
+
         exp_name = f"{unique_mlops_exp_prefix}-{dataset_name}{extra_feat_txt}{ablation_txt}"
         experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{extra_feat_txt}{ablation_txt}"
         print(experiment_tracking_file, end="")
