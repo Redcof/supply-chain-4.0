@@ -85,7 +85,7 @@ class TabNetSSL(TabNetBase):
         tn = TabNetwork()
         return tn.fit(part_of_x_train, part_of_y_train, x_test, y_test, pre_trained_backbone=pre_trainer)
 
-    def evaluate(self, model_name, dataset_name, phase, model, x, y, x_timeseries):
+    def evaluate(self, model_name, dataset_name, phase, model, x, y, x_timeseries, meta_info=""):
         x = x.fillna(0)
         np_x = x.to_numpy()
         y_pred = np.clip(model.predict(np_x), a_min=0, a_max=None)
@@ -118,11 +118,11 @@ class TabNetwork(TabNetBase):
                       eval_name=["train", "test"],
                       eval_metric=["mse", MAPE, "mae", "rmse"], )
         imp = {f"feature_{k}": v for k, v in zip(x_train.columns, model.feature_importances_)}
-        mlflow.log_params(imp)
+        mlflow.log_metrics(imp)
         return model, imp
 
-    def evaluate(self, model_name, dataset_name, phase, model, x, y, x_timeseries):
+    def evaluate(self, model_name, dataset_name, phase, model, x, y, x_timeseries, meta_info=""):
         x = x.fillna(0)
         np_x = x.to_numpy()
         y_pred = np.clip(model.predict(np_x), a_min=0, a_max=None)
-        self.log_evaluation(model_name, dataset_name, phase, y, y_pred.reshape((-1,)), x_timeseries)
+        self.log_evaluation(model_name, dataset_name, phase, y, y_pred.reshape((-1,)), x_timeseries, meta_info)

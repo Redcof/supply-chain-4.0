@@ -15,10 +15,10 @@ from tools.preprocess import timeseries_split
 logger = logging.getLogger("SCM-4.0")
 
 is_extra_feature_enabled = True
-ablation = -1  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
+ablation = 100  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
 
 
-def experiment(model_name, dataset_name):
+def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
     logger.info(f"{dataset_name}:{model_name}: Preparing model and datasets")
     df, target, timeseries_col, dataset_name = get_dataset(dataset_name, ablation_limit=ablation,
                                                            is_extra_feature_enabled=is_extra_feature_enabled)
@@ -28,9 +28,11 @@ def experiment(model_name, dataset_name):
     # mlflow.log_input(x_train, context="training")
     # mlflow.log_input(x_test, context="testing")
     mlflow.log_params(dict(
+        features=list(x_train.columns.values),
+    ))
+    mlflow.log_metrics(dict(
         train_size=len(x_train),
         test_size=len(x_test),
-        features=x_train.columns.values,
         feature_count=len(x_train.columns)
     ))
     logger.info(f"{dataset_name}:{model_name}: Creating timeseries features for plotting")
@@ -49,8 +51,8 @@ def experiment(model_name, dataset_name):
     logger.info(f"{model_name}:{dataset_name}: feature_importance {feature_importance}")
     
     logger.info(f"{dataset_name}:{model_name}: Start evaluation... WITH DATASIZE: {x_test.shape}")
-    model_trainer.evaluate(model_name, dataset_name, "train", model, x_train, y_train, x_train_timeseries)
-    model_trainer.evaluate(model_name, dataset_name, "test", model, x_test, y_test, x_test_timeseries)
+    model_trainer.evaluate(model_name, dataset_name, f"train", model, x_train, y_train, x_train_timeseries)
+    model_trainer.evaluate(model_name, dataset_name, f"test", model, x_test, y_test, x_test_timeseries)
     logger.info(f"{dataset_name}:{model_name}: Done")
     return True
 
@@ -63,22 +65,27 @@ def main():
             experiments.append((model_name, dataset_name))
     print("")
     for model_name, dataset_name in tqdm(experiments):
-        postfix = "-exf" if is_extra_feature_enabled else ""
-        ablation_txt = "-abl" if ablation > 0 else ""
-        exp_name = f"pc2-{dataset_name}{postfix}{ablation_txt}"
-        # exp_name = f"plot-{dataset_name}{postfix}{ablation_txt}"
-        experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{postfix}{ablation_txt}"
-        print(experiment_tracking_file)
+        extra_feat_txt = "-exf" if is_extra_feature_enabled else ""
+        ablation_txt = f"-abl{ablation}" if ablation > 0 else ""
+        unique_mlops_exp_prefix = "pcmay"
+        exp_name = f"{unique_mlops_exp_prefix}-{dataset_name}{extra_feat_txt}{ablation_txt}"
+        experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{extra_feat_txt}{ablation_txt}"
+        print(experiment_tracking_file, end="")
         if not os.path.exists(experiment_tracking_file):
+            print("[Executing...]")
             mlflow.set_experiment(experiment_name=exp_name)
             with mlflow.start_run(description=exp_name):
                 mlflow.log_params(dict(
                     model=model_name,
                     dataset=dataset_name,
+                    extra_feat=is_extra_feature_enabled,
+                    ablation=ablation,
                 ))
-                experiment(model_name, dataset_name)
+                experiment(model_name, dataset_name, extra_feat_txt, ablation_txt)
                 mlflow.end_run()
                 open(experiment_tracking_file, "w")
+        else:
+            print("[DONE]")
 
 
 logger.info("All experiments are done")

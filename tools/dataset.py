@@ -58,6 +58,7 @@ def food_demand_dataset(is_extra_feature_enabled=False):
 
 def forecasts_for_product_demand_dataset(is_extra_feature_enabled=False):
     """
+    BASELINE
     Returns a tuple (cleaned dataset in pandas dataframe, the target column name)
     :return:
     """
@@ -89,18 +90,19 @@ def livestock_meat_dataset(is_extra_feature_enabled=False):
     # dtypes
     df['HS_CODE'] = df['HS_CODE'].astype('int64').astype('category')
     df['GEOGRAPHY_CODE'] = df['GEOGRAPHY_CODE'].astype('int64').astype('category')
-    df['TIMEPERIOD_ID'] = df['TIMEPERIOD_ID'].astype('int64').astype('category')
     df['GEOGRAPHY_DESC'] = df['GEOGRAPHY_DESC'].astype('category')
-    df['YEAR_ID'] = df['YEAR_ID'].astype('int64').astype('category')
+    # as per the analysis, TIMEPERIOD_ID reflects 'Month'
+    # so, creating a date column using the TIMEPERIOD_ID & YEAR_ID
+    df['DATE'] = df[['YEAR_ID', 'TIMEPERIOD_ID']].apply(lambda x: f"{x.YEAR_ID}-{x.TIMEPERIOD_ID}-01")
     df['UNIT_DESC'] = df['UNIT_DESC'].astype('category')
     # sort
-    df.sort_values(by=['YEAR_ID', 'TIMEPERIOD_ID'], inplace=True)
+    df.sort_values(by=['DATE'], inplace=True)
     # drop
-    df.drop(columns=["SOURCE_ID", "COMMODITY_DESC", "ATTRIBUTE_DESC"], inplace=True)
+    df.drop(columns=["SOURCE_ID", "COMMODITY_DESC", "ATTRIBUTE_DESC", "YEAR_ID", "TIMEPERIOD_ID"], inplace=True)
     # TODO Convert 'COMMODITY_DESC' feature to categories
     # preprocess
     df = preprocess(df, "AMOUNT", is_extra_feature_enabled=is_extra_feature_enabled)
-    return df, "AMOUNT", None, "livestock_meat_import"
+    return df, "AMOUNT", 'DATE', "livestock_meat_import"
 
 
 def online_retail_dataset(is_extra_feature_enabled=False):
@@ -133,7 +135,7 @@ def online_retail_2_dataset(is_extra_feature_enabled=False):
     """
     df = pd.read_excel(root_dir / "online_retail_2" / "online_retail_2.xlsx",
                        sheet_name=['Year 2009-2010', 'Year 2010-2011'])
-
+    
     df = pd.concat([df['Year 2009-2010'], df['Year 2010-2011']])
     df.dropna(inplace=True)
     # fix dtypes
@@ -148,5 +150,5 @@ def online_retail_2_dataset(is_extra_feature_enabled=False):
     # drop unusable columns
     df.drop(columns=['Invoice', 'Description'], inplace=True)
     # TODO Convert 'Description' feature to categories
-
+    
     return df, "Quantity", "InvoiceDate", "online_retail_2"

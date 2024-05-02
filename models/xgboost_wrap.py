@@ -30,5 +30,5 @@ class XGBoostBaseModel(BaseModel):
         grid_search_agent = grid_search.fit(x_train, y_train)
         xgb_model = grid_search_agent.best_estimator_
         imp = {f"feature_{k}": v for k, v in zip(xgb_model.feature_names_in_, xgb_model.feature_importances_)}
-        mlflow.log_params(imp)
+        mlflow.log_metrics(imp)
         return xgb_model, imp
