@@ -9,7 +9,7 @@ root_dir = pathlib.Path(r"./datasets")
 logger = logging.getLogger(__name__)
 
 
-def food_demand_dataset(is_extra_feature_enabled=False):
+def food_demand_dataset(is_extra_feature_enabled=False, label_encoding=True):
     """
     Returns a tuple (cleaned dataset in pandas dataframe, the target column name)
     :return:
@@ -26,11 +26,11 @@ def food_demand_dataset(is_extra_feature_enabled=False):
     df.sort_values(by=['week'], inplace=True)
     df['week'] = df['week'].astype('category')
     # preprocess
-    df = preprocess(df, "num_orders", is_extra_feature_enabled=is_extra_feature_enabled)
+    df = preprocess(df, "num_orders", is_extra_feature_enabled=is_extra_feature_enabled, label_encoding=label_encoding)
     return df, "num_orders", None, "food_demand"
 
 
-def forecasts_for_product_demand_dataset(is_extra_feature_enabled=False):
+def forecasts_for_product_demand_dataset(is_extra_feature_enabled=False, label_encoding=True):
     """
     BASELINE
     Returns a tuple (cleaned dataset in pandas dataframe, the target column name)
@@ -50,11 +50,12 @@ def forecasts_for_product_demand_dataset(is_extra_feature_enabled=False):
     df['Date'] = pd.to_datetime(df['Date'], format="%Y/%m/%d")
     df.sort_values(by=['Date'], inplace=True)
     # preprocess
-    df = preprocess(df, "Order_Demand", "Date", is_extra_feature_enabled=is_extra_feature_enabled)
+    df = preprocess(df, "Order_Demand", "Date", is_extra_feature_enabled=is_extra_feature_enabled,
+                    label_encoding=label_encoding)
     return df, "Order_Demand", "Date", "product_demand"
 
 
-def future_sales_dataset(is_extra_feature_enabled=False):
+def future_sales_dataset(is_extra_feature_enabled=False, label_encoding=True):
     """
     Returns a tuple (cleaned dataset in pandas dataframe, the target column name)
     :return:
@@ -70,11 +71,12 @@ def future_sales_dataset(is_extra_feature_enabled=False):
     # drop
     df.drop(columns=['date_block_num'], inplace=True)
     # preprocess
-    df = preprocess(df, "item_cnt_day", "date", is_extra_feature_enabled=is_extra_feature_enabled)
+    df = preprocess(df, "item_cnt_day", "date", is_extra_feature_enabled=is_extra_feature_enabled,
+                    label_encoding=label_encoding)
     return df, "item_cnt_day", "date", "future_sales"
 
 
-def livestock_meat_dataset(is_extra_feature_enabled=False):
+def livestock_meat_dataset(is_extra_feature_enabled=False, label_encoding=True):
     """
     Returns a tuple (cleaned dataset in pandas dataframe, the target column name)
     :return:
@@ -97,11 +99,11 @@ def livestock_meat_dataset(is_extra_feature_enabled=False):
     df.drop(columns=["SOURCE_ID", "COMMODITY_DESC", "ATTRIBUTE_DESC", "YEAR_ID", "TIMEPERIOD_ID"], inplace=True)
     # TODO Convert 'COMMODITY_DESC' feature to categories
     # preprocess
-    df = preprocess(df, "AMOUNT", is_extra_feature_enabled=is_extra_feature_enabled)
+    df = preprocess(df, "AMOUNT", is_extra_feature_enabled=is_extra_feature_enabled, label_encoding=label_encoding)
     return df, "AMOUNT", 'DATE', "livestock_meat_import"
 
 
-def online_retail_dataset(is_extra_feature_enabled=False):
+def online_retail_dataset(is_extra_feature_enabled=False, label_encoding=True):
     """
     Returns a tuple (cleaned dataset in pandas dataframe, the target column name)
     :return:
@@ -115,16 +117,17 @@ def online_retail_dataset(is_extra_feature_enabled=False):
     # datetime
     df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'], format="%d/%m/%Y %I:%M:%S %p")
     df.sort_values(by=['InvoiceDate'], inplace=True)
-    invoice_date = df.InvoiceDate.copy()
+    # invoice_date = df.InvoiceDate.copy()
     # preprocess
-    df = preprocess(df, "Quantity", "InvoiceDate", is_extra_feature_enabled=is_extra_feature_enabled)
+    df = preprocess(df, "Quantity", "InvoiceDate", is_extra_feature_enabled=is_extra_feature_enabled,
+                    label_encoding=label_encoding)
     # drop unusable columns
     df.drop(columns=['InvoiceNo', 'Description'], inplace=True)
     # TODO Convert 'Description' feature to categories
     return df, "Quantity", "InvoiceDate", "online_retail"
 
 
-def online_retail_2_dataset(is_extra_feature_enabled=False):
+def online_retail_2_dataset(is_extra_feature_enabled=False, label_encoding=True):
     """
     Returns a tuple (cleaned dataset in pandas dataframe, the target column name)
     :return:
@@ -142,7 +145,8 @@ def online_retail_2_dataset(is_extra_feature_enabled=False):
     df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'], format="%d/%m/%Y %I:%M:%S %p")
     df.sort_values(by=['InvoiceDate'], inplace=True)
     # preprocess
-    df = preprocess(df, "Quantity", "InvoiceDate", is_extra_feature_enabled=is_extra_feature_enabled)
+    df = preprocess(df, "Quantity", "InvoiceDate", is_extra_feature_enabled=is_extra_feature_enabled,
+                    label_encoding=label_encoding)
     # drop unusable columns
     df.drop(columns=['Invoice', 'Description'], inplace=True)
     # TODO Convert 'Description' feature to categories
@@ -150,30 +154,32 @@ def online_retail_2_dataset(is_extra_feature_enabled=False):
     return df, "Quantity", "InvoiceDate", "online_retail_2"
 
 
-def get_dataset(dataset_name, is_extra_feature_enabled=False, ablation_limit=None):
+def get_dataset(dataset_name, is_extra_feature_enabled=False, ablation_limit=None, label_encoding=True):
     logger.info(f"Creating dataset for :{dataset_name}")
     if dataset_name == "food_demand":
         df, target, timeseries_col, dataset_name = food_demand_dataset(
-            is_extra_feature_enabled=is_extra_feature_enabled)
+            is_extra_feature_enabled=is_extra_feature_enabled, label_encoding=label_encoding)
     elif dataset_name == "product_demand":
         df, target, timeseries_col, dataset_name = forecasts_for_product_demand_dataset(
-            is_extra_feature_enabled=is_extra_feature_enabled)
+            is_extra_feature_enabled=is_extra_feature_enabled, label_encoding=label_encoding)
     elif dataset_name == "future_sales":
         df, target, timeseries_col, dataset_name = future_sales_dataset(
-            is_extra_feature_enabled=is_extra_feature_enabled)
+            is_extra_feature_enabled=is_extra_feature_enabled, label_encoding=label_encoding)
     elif dataset_name == "livestock_meat_import":
         df, target, timeseries_col, dataset_name = livestock_meat_dataset(
-            is_extra_feature_enabled=is_extra_feature_enabled)
+            is_extra_feature_enabled=is_extra_feature_enabled, label_encoding=label_encoding)
     elif dataset_name == "online_retail":
         df, target, timeseries_col, dataset_name = online_retail_dataset(
-            is_extra_feature_enabled=is_extra_feature_enabled)
+            is_extra_feature_enabled=is_extra_feature_enabled, label_encoding=label_encoding)
     elif dataset_name == "online_retail_2":
         df, target, timeseries_col, dataset_name = online_retail_2_dataset(
-            is_extra_feature_enabled=is_extra_feature_enabled)
+            is_extra_feature_enabled=is_extra_feature_enabled, label_encoding=label_encoding)
     else:
         raise ValueError("Invalid dataset name")
     if ablation_limit != -1 and isinstance(ablation_limit, int):
         df = df.head(ablation_limit)
     # remove columns with constant values
-    df = df.loc[:, (df != df.iloc[0]).any()]
+    for col in df.columns:
+        if df[col].nunique == 1:
+            df = df.drop(columns=[col])
     return df, target, timeseries_col, dataset_name
