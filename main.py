@@ -120,4 +120,8 @@ logger.info("All experiments are done")
 
 if __name__ == '__main__':
     configure_logger(logging.DEBUG)  # logger
+    # dataset_name = "product_demand"
+    # df, target, timeseries_col, dataset_name = get_dataset(dataset_name, ablation_limit=-1,
+    #                                                        is_extra_feature_enabled=False,
+    #                                                        label_encoding=False)
     main()
