@@ -14,16 +14,16 @@ from tools.preprocess import timeseries_split
 
 logger = logging.getLogger("SCM-4.0")
 
-is_extra_feature_enabled = True
+is_extra_feature_enabled = False
 ablation = -1  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
-unique_mlops_exp_prefix = "macmay"
+unique_mlops_exp_prefix = "pcmay02"
 
 
 def calculate_time_period(series):
     difference_txt = ""
     # Get the difference between the maximum and minimum dates
     date_difference = series.max() - series.min()
-
+    
     # # Extract individual components
     # years = date_difference.days // 365
     # months = (date_difference.days % 365) // 30
@@ -45,7 +45,7 @@ def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
     logger.info(f"{dataset_name}:DF INFO:\n{df.info()}")
     model_trainer = get_model_trainer(model_name)
     x_train, x_test, y_train, y_test = timeseries_split(df, target, train_size=.8)
-
+    
     total_diff = calculate_time_period(df[timeseries_col])
     train_diff = calculate_time_period(x_train[timeseries_col])
     test_diff = calculate_time_period(x_test[timeseries_col])
@@ -73,9 +73,9 @@ def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
         x_test_timeseries = list(range(len(x_test)))
     logger.info(f"{dataset_name}:{model_name}: Start training... WITH DATASIZE: {x_train.shape}")
     model, feature_importance = model_trainer.fit(x_train, y_train, x_test, y_test)
-
+    
     logger.info(f"{model_name}:{dataset_name}: feature_importance {feature_importance}")
-
+    
     logger.info(f"{dataset_name}:{model_name}: Start evaluation... WITH DATASIZE: {x_test.shape}")
     model_trainer.evaluate(model_name, dataset_name, f"train", model, x_train, y_train, x_train_timeseries,
                            meta_info=meta_info)
@@ -95,7 +95,7 @@ def main():
     for model_name, dataset_name in tqdm(experiments):
         extra_feat_txt = "-exf" if is_extra_feature_enabled else ""
         ablation_txt = f"-abl{ablation}" if ablation > 0 else ""
-
+        
         exp_name = f"{unique_mlops_exp_prefix}-{dataset_name}{extra_feat_txt}{ablation_txt}"
         experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{extra_feat_txt}{ablation_txt}"
         print(experiment_tracking_file, end="")
