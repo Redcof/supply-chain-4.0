@@ -1,4 +1,5 @@
 import os
+import datetime
 
 import mlflow
 from dotenv import load_dotenv
@@ -16,7 +17,8 @@ logger = logging.getLogger("SCM-4.0")
 
 is_extra_feature_enabled = False
 ablation = -1  # 1024 * 5  # set to -1 to select entire dataset, otherwise an integer number
-unique_mlops_exp_prefix = "pcmay02"
+
+unique_mlops_exp_prefix = "pc%02d%02d" % (datetime.datetime.month, datetime.datetime.day)
 
 
 def calculate_time_period(series):
@@ -73,7 +75,9 @@ def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
         x_test_timeseries = list(range(len(x_test)))
     logger.info(f"{dataset_name}:{model_name}: Start training... WITH DATASIZE: {x_train.shape}")
     model, feature_importance = model_trainer.fit(x_train, y_train, x_test, y_test)
-    
+    if model_name == "explainable_boosting":
+        feature_importance.write_html(f"output/{dataset_name}-{model_name}{meta_info}.html")
+        feature_importance = "are saved as plotly html."
     logger.info(f"{model_name}:{dataset_name}: feature_importance {feature_importance}")
     
     logger.info(f"{dataset_name}:{model_name}: Start evaluation... WITH DATASIZE: {x_test.shape}")
@@ -88,35 +92,39 @@ def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
 def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
     experiments = []
-    for dataset_name in ["online_retail", "online_retail_2", "product_demand", "future_sales", "livestock_meat_import"]:
-        for model_name in ["xgboost", "explainable_boosting", "ssl+tabnet", "tabnet"]:
+    global is_extra_feature_enabled
+    
+    for dataset_name in ["future_sales", "online_retail", "online_retail_2", "product_demand", "livestock_meat_import"]:
+        for model_name in ["explainable_boosting", "ssl+tabnet", "tabnet"]:
             experiments.append((model_name, dataset_name))
     print("")
-    for model_name, dataset_name in tqdm(experiments):
-        extra_feat_txt = "-exf" if is_extra_feature_enabled else ""
-        ablation_txt = f"-abl{ablation}" if ablation > 0 else ""
-        
-        exp_name = f"{unique_mlops_exp_prefix}-{dataset_name}{extra_feat_txt}{ablation_txt}"
-        experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{extra_feat_txt}{ablation_txt}"
-        print(experiment_tracking_file, end="")
-        if not os.path.exists(experiment_tracking_file):
-            print("[Executing...]")
-            mlflow.set_experiment(experiment_name=exp_name)
-            with mlflow.start_run(description=exp_name):
-                mlflow.log_params(dict(
-                    model=model_name,
-                    dataset=dataset_name,
-                    extra_feat=is_extra_feature_enabled,
-                    ablation=ablation,
-                ))
-                experiment(model_name, dataset_name, extra_feat_txt, ablation_txt)
-                mlflow.end_run()
-                open(experiment_tracking_file, "w")
-        else:
-            print("[DONE]")
+    
+    for is_extra_feature_enabled in [False, True]:
+        for model_name, dataset_name in tqdm(experiments):
+            extra_feat_txt = "-exf" if is_extra_feature_enabled else ""
+            ablation_txt = f"-abl{ablation}" if ablation > 0 else ""
+            
+            exp_name = f"{unique_mlops_exp_prefix}-{dataset_name}{extra_feat_txt}{ablation_txt}"
+            experiment_tracking_file = f"output/tracking/{dataset_name}-{model_name}{extra_feat_txt}{ablation_txt}"
+            
+            if not os.path.exists(experiment_tracking_file):
+                logger.info("%s [Executing...]" % experiment_tracking_file)
+                mlflow.set_experiment(experiment_name=exp_name)
+                with mlflow.start_run(description=exp_name):
+                    mlflow.log_params(dict(
+                        model=model_name,
+                        dataset=dataset_name,
+                        extra_feat=is_extra_feature_enabled,
+                        ablation=ablation,
+                    ))
+                    experiment(model_name, dataset_name, extra_feat_txt, ablation_txt)
+                    mlflow.end_run()
+                    open(experiment_tracking_file, "w")
+            else:
+                logger.info("%s [DONE...]" % experiment_tracking_file)
+    
+    logger.info("All experiments are done")
 
-
-logger.info("All experiments are done")
 
 if __name__ == '__main__':
     configure_logger(logging.DEBUG)  # logger
