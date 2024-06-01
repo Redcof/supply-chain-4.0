@@ -38,7 +38,7 @@ def calculate_time_period(series):
     return date_difference.seconds, str(date_difference)  # , difference_txt.strip()
 
 
-def experiment(model_name, dataset_name, extra_feat_txt="", ablation_txt=""):
+def experiment(model_name, dataset_name, is_extra_feature_enabled, extra_feat_txt="", ablation_txt=""):
     meta_info = "%s%s" % (extra_feat_txt, ablation_txt)
     logger.info(f"{dataset_name}:{model_name}:{meta_info} Preparing model and datasets")
     df, target, timeseries_col, dataset_name = get_dataset(dataset_name, ablation_limit=ablation,
@@ -117,7 +117,7 @@ def main():
                         extra_feat=is_extra_feature_enabled,
                         ablation=ablation,
                     ))
-                    experiment(model_name, dataset_name, extra_feat_txt, ablation_txt)
+                    experiment(model_name, dataset_name, is_extra_feature_enabled, extra_feat_txt, ablation_txt)
                     mlflow.end_run()
                     open(experiment_tracking_file, "w")
             else:
